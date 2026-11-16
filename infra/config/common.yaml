@@ -1,0 +1,7 @@
+# Configuration shared by all services.
+# Mounted at /config/common.yaml and loaded with
+#   SPRING_CONFIG_IMPORT=optional:file:/config/common.yaml
+# Each service's application.yaml takes precedence over this file.
+#
+# Candidates: OTel Collector OTLP endpoint, Keycloak issuer-uri,
+# Kafka bootstrap-servers, Apicurio URL, log format, actuator.
