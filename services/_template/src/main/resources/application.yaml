@@ -1,8 +1,9 @@
 spring:
   application:
     name: template-service
-  # Config shared by all services (OTLP, Keycloak issuer, Kafka...) comes from
-  # infra/config/common.yaml, imported via SPRING_CONFIG_IMPORT in compose.
+  threads:
+    virtual:
+      enabled: true
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/app}
     username: ${DB_USERNAME:template_svc}

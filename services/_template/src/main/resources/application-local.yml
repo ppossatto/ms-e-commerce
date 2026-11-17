@@ -1,0 +1,9 @@
+# "local" profile: external HTTP dependencies are answered by an embedded WireMock
+# server instead of real services. Mappings live in src/test/resources/wiremock/.
+wiremock:
+  port: 8089
+
+# Point every outbound client to WireMock. Add one entry per external dependency.
+clients:
+  catalog:
+    base-url: http://localhost:${wiremock.port}
