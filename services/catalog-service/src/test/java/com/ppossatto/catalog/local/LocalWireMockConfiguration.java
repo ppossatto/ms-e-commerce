@@ -1,4 +1,4 @@
-package com.ppossatto.template.local;
+package com.ppossatto.catalog.local;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
@@ -19,8 +19,8 @@ import org.springframework.context.annotation.Profile;
 @TestConfiguration(proxyBeanMethods = false)
 public class LocalWireMockConfiguration {
 
-  @Bean(initMethod = "start", destroyMethod = "stop")
-  WireMockServer wireMockServer(@Value("${wiremock.port}") int port) {
-    return new WireMockServer(options().port(port).usingFilesUnderClasspath("wiremock"));
-  }
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    WireMockServer wireMockServer(@Value("${wiremock.port}") int port) {
+        return new WireMockServer(options().port(port).usingFilesUnderClasspath("wiremock"));
+    }
 }

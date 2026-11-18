@@ -9,9 +9,9 @@ import org.springframework.boot.SpringApplication;
  */
 public class LocalApplication {
 
-  static void main(String[] args) {
-    SpringApplication.from(TemplateApplication::main)
-       .with(LocalWireMockConfiguration.class)
-       .run(args);
-  }
+    static void main(String[] args) {
+        SpringApplication.from(TemplateApplication::main)
+                .with(LocalWireMockConfiguration.class)
+                .run(args);
+    }
 }

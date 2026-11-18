@@ -29,44 +29,44 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-  @Bean
-  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    return http.csrf(csrf -> csrf.disable())
-       .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-       .authorizeHttpRequests(auth -> auth.requestMatchers(
-             "/actuator/health/**", "/actuator/info", "/actuator/prometheus")
-          .permitAll()
-          .anyRequest()
-          .authenticated())
-       .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakConverter())))
-       .build();
-  }
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http.csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(
+                        auth -> auth.requestMatchers("/actuator/health/**", "/actuator/info", "/actuator/prometheus")
+                                .permitAll()
+                                .anyRequest()
+                                .authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakConverter())))
+                .build();
+    }
 
-  @Bean
-  JwtDecoder jwtDecoder(
-     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri,
-     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri) {
-    NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
-    decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(issuerUri));
-    return decoder;
-  }
+    @Bean
+    JwtDecoder jwtDecoder(
+            @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri,
+            @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri) {
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(issuerUri));
+        return decoder;
+    }
 
-  private static JwtAuthenticationConverter keycloakConverter() {
-    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-    converter.setPrincipalClaimName("preferred_username");
-    converter.setJwtGrantedAuthoritiesConverter(realmRoles());
-    return converter;
-  }
+    private static JwtAuthenticationConverter keycloakConverter() {
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setPrincipalClaimName("preferred_username");
+        converter.setJwtGrantedAuthoritiesConverter(realmRoles());
+        return converter;
+    }
 
-  private static Converter<Jwt, Collection<GrantedAuthority>> realmRoles() {
-    return jwt -> {
-      Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
-      if (realmAccess == null || !(realmAccess.get("roles") instanceof Collection<?> roles)) {
-        return List.of();
-      }
-      return roles.stream()
-         .map(role -> (GrantedAuthority) new SimpleGrantedAuthority("ROLE_" + role))
-         .toList();
-    };
-  }
+    private static Converter<Jwt, Collection<GrantedAuthority>> realmRoles() {
+        return jwt -> {
+            Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
+            if (realmAccess == null || !(realmAccess.get("roles") instanceof Collection<?> roles)) {
+                return List.of();
+            }
+            return roles.stream()
+                    .map(role -> (GrantedAuthority) new SimpleGrantedAuthority("ROLE_" + role))
+                    .toList();
+        };
+    }
 }

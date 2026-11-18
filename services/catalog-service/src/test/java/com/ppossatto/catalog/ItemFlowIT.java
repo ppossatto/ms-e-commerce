@@ -6,12 +6,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.ppossatto.catalog.domain.model.Item;
 import com.ppossatto.catalog.domain.model.ItemNotInCatalogException;
 import com.ppossatto.catalog.domain.port.in.CreateItemUseCase;
 import com.ppossatto.catalog.domain.port.in.CreateItemUseCase.CreateItemCommand;
 import com.ppossatto.catalog.domain.port.in.FindItemUseCase;
-import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
