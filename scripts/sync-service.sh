@@ -5,6 +5,7 @@
 #   ./scripts/sync-service.sh order-service             # one service
 #   ./scripts/sync-service.sh --all                     # every service with a .template-ref
 #   ./scripts/sync-service.sh order-service --dry-run   # only show what would change
+#   ./scripts/sync-service.sh order-service --workflow  # also regenerate .github/workflows/<name>.yml
 #   ./scripts/sync-service.sh order-service --from <commit>
 #        # for services created before .template-ref existed: the commit of services/_template
 #        # the service was generated from
@@ -16,6 +17,9 @@
 # Only what changed in the template between base and theirs is applied, so the service's own
 # code is kept. If both sides changed the same lines, the file gets conflict markers
 # (<<<<<<< / >>>>>>>) to resolve by hand, as in a git merge.
+#
+# The CI workflow lives outside services/, so it is not merged. --workflow rewrites it from the
+# current generator (scripts/lib/template.sh); review the result with "git diff".
 #
 # Never touched: the Item/Catalog example files (see EXAMPLE_FILES_REGEX in lib/template.sh)
 # and files deleted from the service on purpose. Files removed from the template are reported,
@@ -31,9 +35,10 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=lib/template.sh
 source "$ROOT/scripts/lib/template.sh"
 
-usage() { sed -n '3,10p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 1; }
+usage() { sed -n '3,11p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 1; }
 
 DRY_RUN=false
+WORKFLOW=false
 ALL=false
 FROM=""
 NAMES=()
@@ -41,6 +46,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) DRY_RUN=true ;;
     --all) ALL=true ;;
+    --workflow) WORKFLOW=true ;;
     --from) FROM="${2:?--from needs a commit}"; shift ;;
     -h|--help) usage ;;
     -*) echo "Unknown option: $1" >&2; usage ;;
@@ -92,6 +98,15 @@ sync_one() {
     base_ref="$(cat "$svc/$TEMPLATE_REF_FILE")"
   fi
   git -C "$ROOT" cat-file -e "${base_ref}^{commit}" 2>/dev/null || { echo "[$name] unknown commit: $base_ref" >&2; return 1; }
+
+  if $WORKFLOW; then
+    if $DRY_RUN; then
+      echo "[$name] would rewrite .github/workflows/$name.yml"
+    else
+      write_workflow "$ROOT" "$name"
+      echo "[$name] rewrote .github/workflows/$name.yml"
+    fi
+  fi
 
   if [ "$(git -C "$ROOT" rev-parse "$base_ref")" = "$TARGET_REF" ]; then
     echo "[$name] already up to date (${TARGET_REF:0:8})."

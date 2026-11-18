@@ -7,7 +7,7 @@
 #   package              : com.ppossatto.order
 #   role and schema      : order_svc
 #   main class           : OrderApplication
-#   CI workflow          : .github/workflows/order-service.yml (build, test, push image to GHCR)
+#   CI workflow          : .github/workflows/order-service.yml (build, test, Sonar, image on release tag)
 # and registers the role/schema in Postgres init and the password in .env.example.
 set -euo pipefail
 
@@ -49,74 +49,7 @@ fi
 grep -q "^${UPPER}_DB_PASSWORD=" "$ENV_FILE" || printf '%s_DB_PASSWORD=\n' "$UPPER" >> "$ENV_FILE"
 
 # ---------------------------------------------------------------- 3. CI workflow
-# Quoted heredoc: GitHub expressions (${{ ... }}) are kept literally; __NAME__ is replaced afterwards.
-WF="$ROOT/.github/workflows/$NAME.yml"
-if [ ! -e "$WF" ]; then
-  mkdir -p "$(dirname "$WF")"
-  cat > "$WF" <<'EOF'
-name: __NAME__
-
-on:
-  push:
-    branches: [main]
-    paths: ["services/__NAME__/**", "build-parent/**", "contracts/**"]
-  pull_request:
-    paths: ["services/__NAME__/**", "build-parent/**", "contracts/**"]
-
-permissions:
-  contents: read
-  packages: write
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: "25"
-          cache: maven
-
-      - name: Build and test
-        working-directory: services/__NAME__
-        run: mvn -B verify
-
-      # The image is published only on push to main, never on pull requests.
-      - name: Log in to GitHub Container Registry
-        if: github.event_name == 'push'
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Image metadata
-        if: github.event_name == 'push'
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/__NAME__
-          tags: |
-            type=sha
-            type=raw,value=latest
-
-      - name: Set up Docker Buildx
-        if: github.event_name == 'push'
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build and push image
-        if: github.event_name == 'push'
-        uses: docker/build-push-action@v7
-        with:
-          context: services/__NAME__
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-EOF
-  sed -i "s/__NAME__/${NAME}/g" "$WF"
-fi
+[ -e "$ROOT/.github/workflows/$NAME.yml" ] || write_workflow "$ROOT" "$NAME"
 
 # ---------------------------------------------------------------- Summary
 cat <<EOF
@@ -124,7 +57,8 @@ Created services/$NAME
   package     : ${BASE_PKG}.$PKG
   main class  : ${PASCAL}Application
   role/schema : ${ROLE}
-  CI workflow : .github/workflows/$NAME.yml (image: ghcr.io/<owner>/$NAME)
+  CI workflow : .github/workflows/$NAME.yml
+  Release     : git tag $NAME/v0.1.0 && git push origin $NAME/v0.1.0  ->  ghcr.io/<owner>/$NAME:0.1.0
 
 Done automatically:
   - infra/data/postgres/init/01-schemas.sh : CREATE ROLE/SCHEMA ${ROLE}

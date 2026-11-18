@@ -41,6 +41,16 @@
     <jacoco-maven-plugin.version>0.8.16</jacoco-maven-plugin.version>
     <spotless-maven-plugin.version>3.11.0</spotless-maven-plugin.version>
     <protobuf-maven-plugin.version>5.1.12</protobuf-maven-plugin.version>
+    <sonar-maven-plugin.version>5.9.0.7382</sonar-maven-plugin.version>
+
+    <!--
+      SonarQube Cloud. One Sonar project per service (monorepo), keyed by artifactId.
+      TODO: set sonar.organization to your SonarQube Cloud organization key.
+    -->
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <sonar.organization>ppossatto</sonar.organization>
+    <sonar.projectKey>${sonar.organization}_${project.artifactId}</sonar.projectKey>
+    <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml,${project.build.directory}/site/jacoco-it/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     <openapi-generator-maven-plugin.version>7.27.0</openapi-generator-maven-plugin.version>
   </properties>
 
@@ -241,6 +251,13 @@
     <!-- ================= Opt-in: a service only declares groupId/artifactId ================= -->
     <pluginManagement>
       <plugins>
+        <!-- Run with: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -->
+        <plugin>
+          <groupId>org.sonarsource.scanner.maven</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>${sonar-maven-plugin.version}</version>
+        </plugin>
+
         <plugin>
           <groupId>org.apache.avro</groupId>
           <artifactId>avro-maven-plugin</artifactId>
