@@ -20,6 +20,19 @@ spring:
     properties:
       hibernate.default_schema: catalog_svc
 
+services:
+  keycloak:
+    url: ${KEYCLOAK_URL:http://localhost:8180}
+  mail:
+    url: ${MAILING_URL:http://localhost:1025}
+  rustfs:
+    url: ${RUSTFS_S3_URL:http://localhost:9000}
+  valkey:
+    url: ${VALKEY_CACHE_URL:http://localhost:6379}
+  kafka:
+    url: ${KAFKA_BROKER_URL:http://localhost:9092}
+    topics:
+
 clients:
   catalog:
     base-url: ${CATALOG_BASE_URL:http://localhost:8081}

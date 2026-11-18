@@ -20,6 +20,36 @@ spring:
     properties:
       hibernate.default_schema: template_svc
 
+  # Keycloak (JWT resource server). See config/SecurityConfig.java.
+  #   issuer-uri : must match the "iss" claim of the tokens (public Keycloak URL)
+  #   jwk-set-uri: where the signing keys are fetched (can be the internal URL, e.g. http://keycloak:8080/...)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/ppossatto}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/ppossatto/protocol/openid-connect/certs}
+
+  # Native Spring Boot properties: picked up automatically once the matching starter is added.
+  mail: # spring-boot-starter-mail (Mailpit locally, Postal in production)
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+  data:
+    redis: # spring-boot-starter-data-redis (Valkey speaks the Redis protocol)
+      url: ${VALKEY_URL:redis://localhost:6379}
+  kafka: # spring-kafka
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+# Application-specific properties (no Spring Boot equivalent).
+app:
+  storage:
+    s3:
+      endpoint: ${RUSTFS_S3_URL:http://localhost:9000}
+  kafka:
+    # One entry per topic the service produces or consumes, e.g.:
+    #   item-created: template.item-created.v1
+    topics: {}
+
 clients:
   catalog:
     base-url: ${CATALOG_BASE_URL:http://localhost:8081}

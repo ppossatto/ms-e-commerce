@@ -57,6 +57,12 @@
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
 
+    <!-- Keycloak: JWT validation (see config/SecurityConfig.java) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+    </dependency>
+
     <!-- Service-specific test deps (the rest comes from build-parent) -->
     <dependency>
       <groupId>org.testcontainers</groupId>

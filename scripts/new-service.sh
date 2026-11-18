@@ -13,40 +13,32 @@ set -euo pipefail
 
 NAME="${1:?Usage: $0 <service-name>  (e.g. order-service)}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SRC="$ROOT/services/_template"
+# shellcheck source=lib/template.sh
+source "$ROOT/scripts/lib/template.sh"
+SRC="$ROOT/$TEMPLATE_PATH"
 DEST="$ROOT/services/$NAME"
-BASE_PKG_DIR="com/ppossatto"
-BASE_PKG="com.ppossatto"
 SCHEMAS_FILE="$ROOT/infra/data/postgres/init/01-schemas.sh"
 ENV_FILE="$ROOT/infra/.env.example"
 
 [[ "$NAME" =~ ^[a-z][a-z0-9-]*$ ]] || { echo "Invalid name: use lowercase letters, digits and hyphens." >&2; exit 1; }
+[[ "$NAME" == _* ]] && { echo "Names starting with '_' are reserved." >&2; exit 1; }
 [ -e "$DEST" ] && { echo "Already exists: $DEST" >&2; exit 1; }
 
-PKG="$(echo "${NAME%-service}" | tr -cd 'a-z0-9')"
-PASCAL="$(echo "${NAME%-service}" | sed -E 's/(^|-)([a-z])/\U\2/g')"
-UPPER="$(echo "$PKG" | tr 'a-z' 'A-Z')"
-ROLE="${PKG}_svc"
+derive_names "$NAME"
 PKG_DIR="src/main/java/$BASE_PKG_DIR/$PKG"
 TEST_DIR="src/test/java/$BASE_PKG_DIR/$PKG"
 
 # ---------------------------------------------------------------- 1. Copy template
-cp -r "$SRC" "$DEST"
-rm -rf "$DEST/target"
+render_template "$SRC" "$DEST" "$NAME"
 
-for base in src/main/java src/test/java; do
-  mv "$DEST/$base/$BASE_PKG_DIR/template" "$DEST/$base/$BASE_PKG_DIR/$PKG"
-done
-mv "$DEST/$PKG_DIR/TemplateApplication.java" "$DEST/$PKG_DIR/${PASCAL}Application.java"
-
-# Replacements: most specific first, most generic last
-find "$DEST" -type f \( -name '*.java' -o -name '*.xml' -o -name '*.yaml' -o -name '*.sql' \) -print0 |
-  xargs -0 sed -i -E \
-    -e "s/template-service/${NAME}/g" \
-    -e "s/template_svc/${ROLE}/g" \
-    -e "s/TemplateApplication/${PASCAL}Application/g" \
-    -e "s/${BASE_PKG//./\\.}\.template/${BASE_PKG}.${PKG}/g" \
-    -e "s/\btemplate\b/${PKG}/g"
+# Remember which template version this service was generated from (used by sync-service.sh).
+REF="$(template_head "$ROOT")"
+if [ -n "$REF" ] && [ -z "$(git -C "$ROOT" status --porcelain -- "$TEMPLATE_PATH")" ]; then
+  echo "$REF" > "$DEST/$TEMPLATE_REF_FILE"
+else
+  echo "Warning: services/_template has uncommitted changes (or this is not a git repo);" >&2
+  echo "         $TEMPLATE_REF_FILE not written, so sync-service.sh will need --from <commit>." >&2
+fi
 
 # ---------------------------------------------------------------- 2. Postgres role/schema + .env.example
 if ! grep -q "CREATE ROLE ${ROLE} " "$SCHEMAS_FILE"; then
