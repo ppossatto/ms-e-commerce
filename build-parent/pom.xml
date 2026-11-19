@@ -53,6 +53,7 @@
     <avro.version>1.12.2</avro.version>
     <protobuf.version>4.36.2</protobuf.version>
     <stripe-java.version>34.2.0</stripe-java.version>
+    <springdoc.version>3.2.0</springdoc.version>
 
     <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
     <jacoco-maven-plugin.version>0.8.16</jacoco-maven-plugin.version>
@@ -130,6 +131,11 @@
       <artifactId>archunit-junit5</artifactId>
       <version>${archunit.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>${springdoc.version}</version>
     </dependency>
   </dependencies>
 

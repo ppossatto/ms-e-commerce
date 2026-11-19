@@ -7,3 +7,12 @@ wiremock:
 clients:
   catalog:
     base-url: http://localhost:${wiremock.port}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    oauth:
+      clientId: swagger-ui
+      usePkceWithAuthorizationCodeGrant: true

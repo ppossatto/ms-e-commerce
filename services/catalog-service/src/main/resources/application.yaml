@@ -47,6 +47,13 @@ app:
     #   item-created: catalog.item-created.v1
     topics: {}
 
+# Swagger UI and API docs are off by default (production); enabled only in the "local" profile.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 clients:
   catalog:
     base-url: ${CATALOG_BASE_URL:http://localhost:8081}
