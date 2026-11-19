@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/catalog/.+"
+  },
+  "response": {
+    "status": 200
+  }
+}

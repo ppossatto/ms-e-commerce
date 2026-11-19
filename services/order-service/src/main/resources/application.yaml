@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: order-service
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/app}
+    username: ${DB_USERNAME:order_svc}
+    password: ${DB_PASSWORD:}
+  # Schema named after the role: it is in the default search_path ("$user")
+  # and avoids reserved words (e.g. "order").
+  flyway:
+    schemas: order_svc
+    default-schema: order_svc
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.default_schema: order_svc
+
+  # Keycloak (JWT resource server). See config/SecurityConfig.java.
+  #   issuer-uri : must match the "iss" claim of the tokens (public Keycloak URL)
+  #   jwk-set-uri: where the signing keys are fetched (can be the internal URL, e.g. http://keycloak:8080/...)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/ppossatto}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/ppossatto/protocol/openid-connect/certs}
+
+  # Native Spring Boot properties: picked up automatically once the matching starter is added.
+  data:
+    redis: # spring-boot-starter-data-redis (Valkey speaks the Redis protocol)
+      url: ${VALKEY_URL:redis://localhost:6379}
+  kafka: # spring-kafka
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+# Application-specific properties (no Spring Boot equivalent).
+app:
+  storage:
+    s3:
+      endpoint: ${RUSTFS_S3_URL:http://localhost:9000}
+  kafka:
+    # One entry per topic the service produces or consumes, e.g.:
+    #   item-created: order.item-created.v1
+    topics: {}
+
+clients:
+  catalog:
+    base-url: ${CATALOG_BASE_URL:http://localhost:8081}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus

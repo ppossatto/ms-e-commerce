@@ -1,0 +1,87 @@
+name: notifications-service
+
+on:
+  pull_request:
+    paths: ["services/notifications-service/**", "build-parent/**", "contracts/**"]
+  push:
+    branches: [main]
+    # Path filters are not evaluated for tag pushes, so a release tag always runs.
+    tags: ["notifications-service/v*"]
+    paths: ["services/notifications-service/**", "build-parent/**", "contracts/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # full history for SonarQube Cloud (blame, new code detection)
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Cache SonarQube Cloud packages
+        if: env.SONAR_TOKEN != ''
+        uses: actions/cache@v6
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      # Sonar runs in the same Maven call, reusing the build and the JaCoCo reports.
+      # Skipped when SONAR_TOKEN is not available (e.g. pull requests from forks).
+      - name: Build, test and analyze
+        working-directory: services/notifications-service
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.qualitygate.wait=true
+          else
+            echo "SONAR_TOKEN not set: skipping SonarQube Cloud analysis."
+            mvn -B verify
+          fi
+
+      # ---- Image: only for release tags and manual runs ----
+      - name: Image tags
+        id: image
+        if: startsWith(github.ref, 'refs/tags/notifications-service/v') || github.event_name == 'workflow_dispatch'
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/notifications-service"
+          if [[ "$GITHUB_REF" == refs/tags/notifications-service/v* ]]; then
+            version="${GITHUB_REF_NAME#notifications-service/v}"
+            echo "tags=${image}:${version},${image}:latest" >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=${image}:sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to GitHub Container Registry
+        if: steps.image.outputs.tags != ''
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        if: steps.image.outputs.tags != ''
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push image
+        if: steps.image.outputs.tags != ''
+        uses: docker/build-push-action@v7
+        with:
+          context: services/notifications-service
+          push: true
+          tags: ${{ steps.image.outputs.tags }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}

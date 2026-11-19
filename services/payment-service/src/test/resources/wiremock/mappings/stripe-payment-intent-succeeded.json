@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/payment_intents"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "pi_local_ok",
+      "object": "payment_intent",
+      "status": "succeeded",
+      "amount": 1999,
+      "currency": "eur"
+    }
+  }
+}
