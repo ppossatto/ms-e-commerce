@@ -7,3 +7,8 @@ wiremock:
 clients:
   catalog:
     base-url: http://localhost:${wiremock.port}
+
+# Email sender configuration for local development
+app:
+  mail:
+    from: ${MAIL_FROM:no-reply@ms-e-commerce.local}

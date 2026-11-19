@@ -63,6 +63,12 @@
       <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
     </dependency>
 
+    <!-- Email: Mailpit locally, Postal in production -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+
     <!-- Service-specific test deps (the rest comes from build-parent) -->
     <dependency>
       <groupId>org.testcontainers</groupId>
