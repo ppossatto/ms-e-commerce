@@ -52,6 +52,7 @@
     <wiremock-spring-boot.version>4.4.3</wiremock-spring-boot.version>
     <avro.version>1.12.2</avro.version>
     <protobuf.version>4.36.2</protobuf.version>
+    <stripe-java.version>34.2.0</stripe-java.version>
 
     <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
     <jacoco-maven-plugin.version>0.8.16</jacoco-maven-plugin.version>
@@ -77,6 +78,11 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.stripe</groupId>
+        <artifactId>stripe-java</artifactId>
+        <version>${stripe-java.version}</version>
       </dependency>
       <dependency>
         <groupId>org.mapstruct</groupId>

@@ -31,9 +31,6 @@ spring:
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/ppossatto/protocol/openid-connect/certs}
 
   # Native Spring Boot properties: picked up automatically once the matching starter is added.
-  mail: # spring-boot-starter-mail (Mailpit locally, Postal in production)
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
   data:
     redis: # spring-boot-starter-data-redis (Valkey speaks the Redis protocol)
       url: ${VALKEY_URL:redis://localhost:6379}

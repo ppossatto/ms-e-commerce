@@ -7,6 +7,7 @@
 #   RustFS    http://localhost:9001   (S3 API on :9000)
 #   Mailpit   http://localhost:8025   (SMTP on :1025)
 #   Keycloak  http://localhost:8180   (admin user from .env)
+#   Stripe    http://localhost:12111  (stripe-mock: Stripe API, stateless)
 name: ppossatto-local
 
 services:
@@ -101,6 +102,14 @@ services:
     ports:
       - "8025:8025"
       - "1025:1025"
+
+  # Official Stripe API mock: validates requests against Stripe's OpenAPI spec and returns
+  # fixed fixtures (stateless). payment-service uses it with STRIPE_API_BASE=http://localhost:12111.
+  stripe-mock:
+    image: stripe/stripe-mock:v0.206.0
+    ports:
+      - "12111:12111"   # HTTP
+      - "12112:12112"   # HTTPS
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.8.2
